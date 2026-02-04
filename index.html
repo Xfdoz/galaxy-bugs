@@ -186,7 +186,7 @@
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1468662216193736782/UkkXwYU0e4IAc_wJiOIO5InteG76N5gmMbhOZ2OKBlt_LDEZ240Xoe6U2drcZ8fYbkN4"; 
 
         function sendToDiscord(bug) {
-            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL === "https://discord.com/api/webhooks/1468662216193736782/UkkXwYU0e4IAc_wJiOIO5InteG76N5gmMbhOZ2OKBlt_LDEZ240Xoe6U2drcZ8fYbkN4") return;
+            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL === "") return;
 
             const payload = {
                 username: "Galaxy FA Bug Notifier",
