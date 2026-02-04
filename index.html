@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiveM Bug Tracker | Gestion Galaxy FA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -20%, #2e1065 0%, transparent 50%);
+            z-index: -1;
+        }
+        .glass-card {
+            background: rgba(15, 15, 15, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .input-dark {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .input-dark:focus {
+            border-color: #a855f7;
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+        .btn-glow {
+            background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-glow:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 25px rgba(147, 51, 234, 0.5);
+        }
+        .hidden { display: none; }
+
+        #mini-loader {
+            position: fixed;
+            top: 0; left: 0; width: 0%; height: 3px;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            z-index: 1000;
+            transition: width 0.4s ease;
+        }
+
+        .custom-select-container { position: relative; user-select: none; }
+        .custom-select-trigger { cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+        .custom-options {
+            position: absolute; top: 110%; left: 0; right: 0;
+            background: #111; border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px; overflow: hidden; z-index: 100;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            opacity: 0; visibility: hidden; transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+        .custom-options.open { opacity: 1; visibility: visible; transform: translateY(0); }
+        .custom-option { padding: 12px 16px; cursor: pointer; transition: 0.2s; color: #9ca3af; }
+        .custom-option:hover { background: rgba(168, 85, 247, 0.2); color: white; }
+    </style>
+</head>
+<body>
+    <div id="mini-loader"></div>
+    <div class="bg-glow"></div>
+
+    <nav class="flex justify-between items-center p-6 md:px-12" data-aos="fade-down">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center font-bold text-white">G</div>
+            <h1 class="text-xl font-extrabold tracking-tighter text-white">GALAXY<span class="gradient-text">FA</span></h1>
+        </div>
+        <div class="flex gap-6 items-center">
+            <button onclick="logoutAndGoHome()" class="text-sm font-semibold text-gray-400 hover:text-white transition">SIGNALER</button>
+            <button onclick="checkAdminAccess()" class="text-sm font-semibold px-4 py-2 rounded-full border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition text-white">ADMINISTRATEUR</button>
+        </div>
+    </nav>
+
+    <div id="staff-section" class="max-w-xl mx-auto mt-10 p-4 transition-opacity duration-500">
+        <div class="text-center mb-8" data-aos="zoom-in">
+            <h2 class="text-4xl font-bold mb-2">Signaler un <span class="gradient-text">Bug</span></h2>
+            <p class="text-gray-400">Rapportez les erreurs pour Galaxy FA</p>
+        </div>
+
+        <form id="bugForm" class="glass-card p-8 space-y-5" data-aos="fade-up">
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Nom Staff</label>
+                <input type="text" id="staffName" required class="input-dark w-full rounded-xl p-4 mt-1 outline-none" placeholder="Ex: Jean Cache">
+            </div>
+            
+            <div class="custom-select-container">
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Catégorie</label>
+                <div id="selectBtn" class="input-dark w-full rounded-xl p-4 mt-1 custom-select-trigger">
+                    <span id="selectedValue">Script / Gameplay</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+                <div id="optionsList" class="custom-options">
+                    <div class="custom-option" data-value="Script / Gameplay">Script / Gameplay</div>
+                    <div class="custom-option" data-value="Mapping / Textures">Mapping / Textures</div>
+                    <div class="custom-option" data-value="Véhicules">Véhicules</div>
+                    <div class="custom-option" data-value="Économie">Économie</div>
+                    <div class="custom-option" data-value="Autre">Autre</div>
+                </div>
+                <input type="hidden" id="bugType" value="Script / Gameplay">
+            </div>
+
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Lien Preuve</label>
+                <input type="url" id="bugMedia" class="input-dark w-full rounded-xl p-4 mt-1 outline-none" placeholder="Imgur, YouTube...">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase ml-1">Description</label>
+                <textarea id="bugDesc" rows="4" required class="input-dark w-full rounded-xl p-4 mt-1 outline-none" placeholder="Détails du problème..."></textarea>
+            </div>
+            <button type="submit" class="btn-glow w-full py-4 rounded-xl font-bold text-white shadow-lg">ENVOYER LE RAPPORT</button>
+        </form>
+
+        <div class="mt-16 mb-10">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Derniers Bugs <span class="text-green-500">Résolus</span>
+            </h3>
+            <div id="resolvedList" class="grid gap-3"></div>
+        </div>
+    </div>
+
+    <div id="admin-section" class="max-w-4xl mx-auto mt-10 p-4 hidden transition-opacity duration-500">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <h2 class="text-3xl font-bold">Gestion <span class="gradient-text">Galaxy FA</span></h2>
+                <p class="text-gray-400">Tickets en attente</p>
+            </div>
+            <div id="bugCount" class="text-2xl font-black bg-white/5 px-6 py-2 rounded-2xl border border-white/10 text-white">0</div>
+        </div>
+        <div id="bugList" class="grid gap-4 mb-12"></div>
+        <hr class="border-white/5 my-10">
+        <div>
+            <h3 class="text-xl font-bold mb-4 text-green-500">Historique des Résolus</h3>
+            <div id="adminResolvedList" class="grid gap-3 opacity-80"></div>
+        </div>
+    </div>
+
+    <div id="auth-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="glass-card p-8 w-full max-w-md text-center">
+            <h3 class="text-2xl font-bold mb-2 text-white">Accès Restreint</h3>
+            <p class="text-gray-400 mb-6 text-sm">Entrez le code secret Admin</p>
+            <input type="password" id="adminCode" class="input-dark w-full rounded-xl p-4 mb-4 text-center text-xl tracking-widest outline-none" placeholder="••••••••">
+            <div class="flex gap-3">
+                <button onclick="closeAuth()" class="flex-1 py-3 text-gray-400 hover:text-white transition">Annuler</button>
+                <button onclick="verifyAccess()" class="flex-1 btn-glow py-3 rounded-xl font-bold text-white">Vérifier</button>
+            </div>
+            <p id="authError" class="text-red-500 text-xs mt-4 hidden">Code incorrect.</p>
+        </div>
+    </div>
+
+    <div id="notif" class="fixed top-5 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full font-bold shadow-2xl transition-all duration-500 opacity-0 -translate-y-20 z-50">
+        Rapport enregistré !
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+        const ADMIN_SECRET_CODE = "GALAXYFAONTOP2026"; 
+        
+        // ---------------------------------------------------------
+        // METS TON WEBHOOK DISCORD CI-DESSOUS
+        // ---------------------------------------------------------
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1468662216193736782/UkkXwYU0e4IAc_wJiOIO5InteG76N5gmMbhOZ2OKBlt_LDEZ240Xoe6U2drcZ8fYbkN4"; 
+
+        function sendToDiscord(bug) {
+            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL === "https://discord.com/api/webhooks/1468662216193736782/UkkXwYU0e4IAc_wJiOIO5InteG76N5gmMbhOZ2OKBlt_LDEZ240Xoe6U2drcZ8fYbkN4") return;
+
+            const payload = {
+                username: "Galaxy FA Bug Notifier",
+                avatar_url: "https://i.imgur.com/xH5U1XF.png", // Optionnel
+                embeds: [{
+                    title: "🚀 Nouveau Bug Signalé !",
+                    color: 10181046, // Violet
+                    fields: [
+                        { name: "👤 Staff", value: bug.staff, inline: true },
+                        { name: "📁 Catégorie", value: bug.type, inline: true },
+                        { name: "📝 Description", value: bug.desc },
+                        { name: "📸 Preuve", value: bug.media || "Aucune preuve fournie" }
+                    ],
+                    footer: { text: "Signalé le " + bug.date }
+                }]
+            };
+
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).catch(err => console.error("Erreur Webhook:", err));
+        }
+
+        // --- FONCTIONS SYSTÈME ---
+
+        function secureTransition(targetId) {
+            if (targetId === 'admin' && sessionStorage.getItem('isAdmin') !== 'true') {
+                document.getElementById('auth-modal').classList.remove('hidden');
+                return;
+            }
+            const loader = document.getElementById('mini-loader');
+            const staffSec = document.getElementById('staff-section');
+            const adminSec = document.getElementById('admin-section');
+            const current = targetId === 'admin' ? staffSec : adminSec;
+            const target = targetId === 'admin' ? adminSec : staffSec;
+
+            loader.style.width = '100%';
+            current.style.opacity = '0';
+
+            setTimeout(() => {
+                current.classList.add('hidden');
+                target.classList.remove('hidden');
+                target.style.opacity = '0';
+                setTimeout(() => {
+                    target.style.opacity = '1';
+                    loader.style.width = '0%';
+                    if(targetId === 'admin') { renderBugs(); renderAdminResolved(); }
+                    if(targetId === 'staff') renderResolved();
+                }, 50);
+            }, 400);
+        }
+
+        function checkAdminAccess() {
+            if(sessionStorage.getItem('isAdmin') === 'true') secureTransition('admin');
+            else { document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('adminCode').focus(); }
+        }
+
+        function logoutAndGoHome() { sessionStorage.removeItem('isAdmin'); secureTransition('staff'); }
+
+        function verifyAccess() {
+            if(document.getElementById('adminCode').value === ADMIN_SECRET_CODE) {
+                sessionStorage.setItem('isAdmin', 'true');
+                closeAuth();
+                secureTransition('admin');
+            } else { document.getElementById('authError').classList.remove('hidden'); }
+        }
+
+        function closeAuth() { document.getElementById('auth-modal').classList.add('hidden'); document.getElementById('adminCode').value = ""; }
+
+        const selectBtn = document.getElementById('selectBtn');
+        const optionsList = document.getElementById('optionsList');
+        const selectedValueText = document.getElementById('selectedValue');
+        const hiddenInput = document.getElementById('bugType');
+
+        selectBtn.addEventListener('click', () => optionsList.classList.toggle('open'));
+        document.querySelectorAll('.custom-option').forEach(opt => {
+            opt.addEventListener('click', function() {
+                selectedValueText.innerText = this.dataset.value;
+                hiddenInput.value = this.dataset.value;
+                optionsList.classList.remove('open');
+            });
+        });
+
+        const bugForm = document.getElementById('bugForm');
+        bugForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const bug = {
+                id: Date.now(),
+                staff: document.getElementById('staffName').value,
+                type: hiddenInput.value,
+                media: document.getElementById('bugMedia').value,
+                desc: document.getElementById('bugDesc').value,
+                date: new Date().toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})
+            };
+            
+            // On sauvegarde localement pour l'affichage immédiat
+            let bugs = JSON.parse(localStorage.getItem('fivem_bugs')) || [];
+            bugs.unshift(bug);
+            localStorage.setItem('fivem_bugs', JSON.stringify(bugs));
+            
+            // ON ENVOIE SUR DISCORD
+            sendToDiscord(bug);
+
+            bugForm.reset();
+            selectedValueText.innerText = "Script / Gameplay";
+            hiddenInput.value = "Script / Gameplay";
+            showNotif();
+        });
+
+        function renderBugs() {
+            const list = document.getElementById('bugList');
+            const bugs = JSON.parse(localStorage.getItem('fivem_bugs')) || [];
+            document.getElementById('bugCount').innerText = bugs.length;
+            list.innerHTML = bugs.length === 0 ? '<div class="text-center py-20 text-gray-600">Aucun bug en attente.</div>' : 
+            bugs.map(b => `
+                <div class="glass-card p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex-1 w-full text-left">
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded">${b.type}</span>
+                        <h3 class="font-bold text-white mt-2 text-lg">${b.staff}</h3>
+                        <p class="text-gray-400 text-sm mt-1">${b.desc}</p>
+                        ${b.media ? `<a href="${b.media}" target="_blank" class="text-xs text-purple-400 underline mt-2 inline-block">Voir la preuve</a>` : ''}
+                    </div>
+                    <button onclick="resolveBug(${b.id})" class="text-xs font-bold text-green-500 hover:text-green-400 transition uppercase border border-green-500/30 px-4 py-2 rounded-lg">Marquer Résolu</button>
+                </div>
+            `).join('');
+        }
+
+        function resolveBug(id) {
+            let bugs = JSON.parse(localStorage.getItem('fivem_bugs')) || [];
+            let resolved = JSON.parse(localStorage.getItem('fivem_resolved')) || [];
+            const idx = bugs.findIndex(b => b.id === id);
+            if(idx !== -1) {
+                const bug = bugs.splice(idx, 1)[0];
+                resolved.unshift(bug);
+                localStorage.setItem('fivem_bugs', JSON.stringify(bugs));
+                localStorage.setItem('fivem_resolved', JSON.stringify(resolved));
+                renderBugs();
+                renderAdminResolved();
+            }
+        }
+
+        function deleteResolved(id) {
+            let res = JSON.parse(localStorage.getItem('fivem_resolved')) || [];
+            res = res.filter(b => b.id !== id);
+            localStorage.setItem('fivem_resolved', JSON.stringify(res));
+            renderAdminResolved();
+        }
+
+        function renderAdminResolved() {
+            const list = document.getElementById('adminResolvedList');
+            const res = JSON.parse(localStorage.getItem('fivem_resolved')) || [];
+            list.innerHTML = res.length === 0 ? '<p class="text-gray-600 text-sm italic">Vide.</p>' : 
+            res.map(b => `
+                <div class="glass-card p-4 border-l-4 border-green-500 flex justify-between items-center bg-white/5">
+                    <div><p class="text-white text-sm font-semibold">${b.desc.substring(0, 40)}...</p></div>
+                    <button onclick="deleteResolved(${b.id})" class="text-[10px] text-red-400">Supprimer</button>
+                </div>
+            `).join('');
+        }
+
+        function renderResolved() {
+            const list = document.getElementById('resolvedList');
+            const res = JSON.parse(localStorage.getItem('fivem_resolved')) || [];
+            list.innerHTML = res.length === 0 ? '<p class="text-gray-600 text-sm italic">Aucun bug résolu.</p>' : 
+            res.slice(0, 5).map(b => `
+                <div class="glass-card p-4 border-l-4 border-green-500 flex justify-between items-center" data-aos="fade-left">
+                    <div>
+                        <span class="text-[9px] bg-green-500/20 text-green-400 px-2 rounded font-bold uppercase">Résolu</span>
+                        <p class="text-white text-sm font-semibold mt-1">${b.desc.substring(0, 80)}...</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showNotif() {
+            const n = document.getElementById('notif');
+            n.classList.remove('opacity-0', '-translate-y-20');
+            setTimeout(() => n.classList.add('opacity-0', '-translate-y-20'), 3000);
+            renderResolved();
+        }
+
+        document.getElementById('adminCode').addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyAccess(); });
+        window.onload = renderResolved;
+    </script>
+</body>
+</html>
