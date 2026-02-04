@@ -180,9 +180,7 @@
         AOS.init();
         const ADMIN_SECRET_CODE = "GALAXYFAONTOP2026"; 
         
-        // ---------------------------------------------------------
-        // METS TON WEBHOOK DISCORD CI-DESSOUS
-        // ---------------------------------------------------------
+        // WEBHOOK CONFIG
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1468662216193736782/UkkXwYU0e4IAc_wJiOIO5InteG76N5gmMbhOZ2OKBlt_LDEZ240Xoe6U2drcZ8fYbkN4"; 
 
         function sendToDiscord(bug) {
@@ -190,10 +188,10 @@
 
             const payload = {
                 username: "Galaxy FA Bug Notifier",
-                avatar_url: "https://i.imgur.com/xH5U1XF.png", // Optionnel
+                avatar_url: "https://i.imgur.com/xH5U1XF.png",
                 embeds: [{
                     title: "🚀 Nouveau Bug Signalé !",
-                    color: 10181046, // Violet
+                    color: 10181046,
                     fields: [
                         { name: "👤 Staff", value: bug.staff, inline: true },
                         { name: "📁 Catégorie", value: bug.type, inline: true },
@@ -211,8 +209,7 @@
             }).catch(err => console.error("Erreur Webhook:", err));
         }
 
-        // --- FONCTIONS SYSTÈME ---
-
+        // NAVIGATION & SECURE
         function secureTransition(targetId) {
             if (targetId === 'admin' && sessionStorage.getItem('isAdmin') !== 'true') {
                 document.getElementById('auth-modal').classList.remove('hidden');
@@ -242,7 +239,10 @@
 
         function checkAdminAccess() {
             if(sessionStorage.getItem('isAdmin') === 'true') secureTransition('admin');
-            else { document.getElementById('auth-modal').classList.remove('hidden'); document.getElementById('adminCode').focus(); }
+            else { 
+                document.getElementById('auth-modal').classList.remove('hidden'); 
+                document.getElementById('adminCode').focus(); 
+            }
         }
 
         function logoutAndGoHome() { sessionStorage.removeItem('isAdmin'); secureTransition('staff'); }
@@ -252,11 +252,17 @@
                 sessionStorage.setItem('isAdmin', 'true');
                 closeAuth();
                 secureTransition('admin');
-            } else { document.getElementById('authError').classList.remove('hidden'); }
+            } else { 
+                document.getElementById('authError').classList.remove('hidden'); 
+            }
         }
 
-        function closeAuth() { document.getElementById('auth-modal').classList.add('hidden'); document.getElementById('adminCode').value = ""; }
+        function closeAuth() { 
+            document.getElementById('auth-modal').classList.add('hidden'); 
+            document.getElementById('adminCode').value = ""; 
+        }
 
+        // SELECTOR
         const selectBtn = document.getElementById('selectBtn');
         const optionsList = document.getElementById('optionsList');
         const selectedValueText = document.getElementById('selectedValue');
@@ -271,6 +277,7 @@
             });
         });
 
+        // FORM SUBMIT
         const bugForm = document.getElementById('bugForm');
         bugForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -283,12 +290,10 @@
                 date: new Date().toLocaleDateString('fr-FR', {hour: '2-digit', minute:'2-digit'})
             };
             
-            // On sauvegarde localement pour l'affichage immédiat
             let bugs = JSON.parse(localStorage.getItem('fivem_bugs')) || [];
             bugs.unshift(bug);
             localStorage.setItem('fivem_bugs', JSON.stringify(bugs));
             
-            // ON ENVOIE SUR DISCORD
             sendToDiscord(bug);
 
             bugForm.reset();
@@ -297,6 +302,7 @@
             showNotif();
         });
 
+        // RENDER FUNCTIONS
         function renderBugs() {
             const list = document.getElementById('bugList');
             const bugs = JSON.parse(localStorage.getItem('fivem_bugs')) || [];
@@ -341,9 +347,9 @@
             const res = JSON.parse(localStorage.getItem('fivem_resolved')) || [];
             list.innerHTML = res.length === 0 ? '<p class="text-gray-600 text-sm italic">Vide.</p>' : 
             res.map(b => `
-                <div class="glass-card p-4 border-l-4 border-green-500 flex justify-between items-center bg-white/5">
+                <div class="glass-card p-4 border-l-4 border-green-500 flex justify-between items-center bg-white/5 mb-2">
                     <div><p class="text-white text-sm font-semibold">${b.desc.substring(0, 40)}...</p></div>
-                    <button onclick="deleteResolved(${b.id})" class="text-[10px] text-red-400">Supprimer</button>
+                    <button onclick="deleteResolved(${b.id})" class="text-[10px] text-red-400 uppercase font-bold">Supprimer</button>
                 </div>
             `).join('');
         }
@@ -351,9 +357,9 @@
         function renderResolved() {
             const list = document.getElementById('resolvedList');
             const res = JSON.parse(localStorage.getItem('fivem_resolved')) || [];
-            list.innerHTML = res.length === 0 ? '<p class="text-gray-600 text-sm italic">Aucun bug résolu.</p>' : 
+            list.innerHTML = res.length === 0 ? '<p class="text-gray-600 text-sm italic">Aucun bug résolu récemment.</p>' : 
             res.slice(0, 5).map(b => `
-                <div class="glass-card p-4 border-l-4 border-green-500 flex justify-between items-center" data-aos="fade-left">
+                <div class="glass-card p-4 border-l-4 border-green-500 flex justify-between items-center mb-2" data-aos="fade-left">
                     <div>
                         <span class="text-[9px] bg-green-500/20 text-green-400 px-2 rounded font-bold uppercase">Résolu</span>
                         <p class="text-white text-sm font-semibold mt-1">${b.desc.substring(0, 80)}...</p>
